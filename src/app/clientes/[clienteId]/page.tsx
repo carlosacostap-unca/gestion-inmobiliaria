@@ -1,5 +1,22 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
+type Contrato = {
+  id: string;
+  lote_id: string;
+  precio_total: number;
+  monto_financiado: number;
+  cuotas_total: number;
+  estado: string;
+};
+
+type CuotaResumen = {
+  contrato_id: string;
+  numero: number;
+  monto: number;
+  pagado: boolean;
+  vencimiento: string;
+};
+
 export default async function ClienteDetallePage({ params }: { params: Promise<{ clienteId: string }> }) {
   const supabase = await createSupabaseServerClient();
   const { clienteId } = await params;
@@ -13,17 +30,21 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
       .eq("estado", "activo")
   ]);
 
-  const contratosIds = (contratos ?? []).map((c: any) => c.id);
-  const { data: cuotas } = contratosIds.length
-    ? await supabase
-        .from("contratos_cuotas")
-        .select("contrato_id, numero, monto, pagado, vencimiento")
-        .in("contrato_id", contratosIds)
-        .order("numero", { ascending: true })
-    : { data: [] } as any;
+  const contratosList: Contrato[] = (contratos as Contrato[] | null) ?? [];
+  const contratosIds = contratosList.map((c) => c.id);
 
-  const contratoIdToCuotas = new Map<string, any[]>();
-  (cuotas ?? []).forEach((q: any) => {
+  let cuotasList: CuotaResumen[] = [];
+  if (contratosIds.length > 0) {
+    const { data: cuotasData } = await supabase
+      .from("contratos_cuotas")
+      .select("contrato_id, numero, monto, pagado, vencimiento")
+      .in("contrato_id", contratosIds)
+      .order("numero", { ascending: true });
+    cuotasList = (cuotasData as CuotaResumen[] | null) ?? [];
+  }
+
+  const contratoIdToCuotas = new Map<string, CuotaResumen[]>();
+  cuotasList.forEach((q) => {
     const arr = contratoIdToCuotas.get(q.contrato_id) ?? [];
     arr.push(q);
     contratoIdToCuotas.set(q.contrato_id, arr);
@@ -36,8 +57,8 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
 
       <h2 className="text-lg font-semibold mb-2">Contratos activos</h2>
       <ul className="space-y-2">
-        {(contratos as any[] | null)?.map((ct) => {
-          const qs = (contratoIdToCuotas.get(ct.id) ?? []) as any[];
+        {contratosList.map((ct) => {
+          const qs = contratoIdToCuotas.get(ct.id) ?? [];
           const pendiente = qs.filter((x) => !x.pagado).reduce((acc, x) => acc + Number(x.monto || 0), 0);
           const enMora = qs.some((x) => !x.pagado && new Date(x.vencimiento) < new Date());
           return (
