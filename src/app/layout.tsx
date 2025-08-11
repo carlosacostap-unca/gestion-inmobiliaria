@@ -30,6 +30,7 @@ export default function RootLayout({
           <nav className="mx-auto max-w-5xl p-4 flex gap-4">
             <Link href="/clientes" className="text-base text-zinc-300 hover:text-white">Clientes</Link>
             <Link href="/loteos" className="text-base text-zinc-300 hover:text-white">Loteos</Link>
+            <Link href="/propiedades" className="text-base text-zinc-300 hover:text-white">Propiedades</Link>
           </nav>
         </header>
         <main>{children}</main>

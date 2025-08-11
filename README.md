@@ -126,6 +126,76 @@ end$$;
 grant select, insert, update, delete on public.recibos to anon, authenticated;
 ```
 
+Propiedades, contratos de alquiler y pagos:
+
+```
+create table if not exists public.propiedades (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null,
+  direccion text not null,
+  descripcion text,
+  creado_en timestamptz not null default now(),
+  alquilada_por_cliente_id uuid references public.clientes(id),
+  alquiler_activo boolean not null default false
+);
+
+create table if not exists public.contratos_alquiler (
+  id uuid primary key default gen_random_uuid(),
+  propiedad_id uuid not null references public.propiedades(id) on delete cascade,
+  cliente_id uuid not null references public.clientes(id) on delete restrict,
+  precio_mensual numeric(12,2) not null,
+  deposito numeric(12,2) not null default 0,
+  fecha_inicio date not null,
+  fecha_fin date,
+  estado text not null default 'activo',
+  creado_en timestamptz not null default now()
+);
+
+create table if not exists public.contratos_alquiler_pagos (
+  id uuid primary key default gen_random_uuid(),
+  contrato_id uuid not null references public.contratos_alquiler(id) on delete cascade,
+  periodo date not null,
+  monto numeric(12,2) not null,
+  pagado boolean not null default false,
+  pagado_en timestamptz,
+  unique(contrato_id, periodo)
+);
+
+create index if not exists propiedades_cliente_idx on public.propiedades(alquilada_por_cliente_id);
+create index if not exists ca_cliente_idx on public.contratos_alquiler(cliente_id);
+create index if not exists cap_contrato_idx on public.contratos_alquiler_pagos(contrato_id);
+
+alter table public.propiedades enable row level security;
+alter table public.contratos_alquiler enable row level security;
+alter table public.contratos_alquiler_pagos enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='propiedades') then
+    create policy propiedades_select on public.propiedades for select using (true);
+    create policy propiedades_insert on public.propiedades for insert with check (true);
+    create policy propiedades_update on public.propiedades for update using (true) with check (true);
+    create policy propiedades_delete on public.propiedades for delete using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='contratos_alquiler') then
+    create policy ca_select on public.contratos_alquiler for select using (true);
+    create policy ca_insert on public.contratos_alquiler for insert with check (true);
+    create policy ca_update on public.contratos_alquiler for update using (true) with check (true);
+    create policy ca_delete on public.contratos_alquiler for delete using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='contratos_alquiler_pagos') then
+    create policy cap_select on public.contratos_alquiler_pagos for select using (true);
+    create policy cap_insert on public.contratos_alquiler_pagos for insert with check (true);
+    create policy cap_update on public.contratos_alquiler_pagos for update using (true) with check (true);
+    create policy cap_delete on public.contratos_alquiler_pagos for delete using (true);
+  end if;
+end$$;
+
+grant select, insert, update, delete on public.propiedades to anon, authenticated;
+grant select, insert, update, delete on public.contratos_alquiler to anon, authenticated;
+grant select, insert, update, delete on public.contratos_alquiler_pagos to anon, authenticated;
+```
+
 Luego, inicia el servidor de desarrollo:
 
 ```bash
