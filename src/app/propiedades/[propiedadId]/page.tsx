@@ -20,18 +20,18 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
     .eq("estado", "activo")
     .maybeSingle();
 
-  const { data: cliente } = contrato
-    ? await supabase.from("clientes").select("id, nombre_completo, telefono").eq("id", contrato.cliente_id).single()
-    : { data: null } as any;
+  let cliente: { id: string; nombre_completo: string; telefono: string } | null = null;
+  if (contrato) {
+    const resp = await supabase.from("clientes").select("id, nombre_completo, telefono").eq("id", contrato.cliente_id).single();
+    cliente = resp.data as { id: string; nombre_completo: string; telefono: string } | null;
+  }
 
-  const pagos = contrato
-    ? (
-        await supabase
-          .from("contratos_alquiler_pagos")
-          .select("id, periodo, monto, pagado, pagado_en")
-          .eq("contrato_id", contrato.id)
-          .order("periodo", { ascending: true })
-      ).data
+  const pagos: { id: string; periodo: string; monto: number; pagado: boolean; pagado_en: string | null }[] = contrato
+    ? ((await supabase
+        .from("contratos_alquiler_pagos")
+        .select("id, periodo, monto, pagado, pagado_en")
+        .eq("contrato_id", contrato.id)
+        .order("periodo", { ascending: true })).data as any[]) ?? []
     : [];
 
   return (
@@ -54,12 +54,12 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
 
           {Array.isArray(pagos) ? (
             (() => {
-              const primeraPendiente = (pagos as any[]).find((p) => !p.pagado);
+              const primeraPendiente = pagos.find((p) => !p.pagado);
               return primeraPendiente ? (
                 <div className="mt-3">
                   <CobrarRentaModal
                     pagoId={primeraPendiente.id}
-                    periodo={primeraPendiente.periodo as string}
+                    periodo={primeraPendiente.periodo}
                     monto={Number(primeraPendiente.monto)}
                     onSubmit={async (fd) => { "use server"; await pagarPrimerPago(propiedadId, fd); }}
                   />
@@ -72,7 +72,7 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
 
           <h3 className="text-base font-semibold mt-6 mb-2">Historial de pagos</h3>
           <ul className="divide-y divide-zinc-800">
-            {(pagos as any[]).map((p) => (
+            {pagos.map((p) => (
               <li key={p.id} className="flex items-center justify-between py-2">
                 <div>
                   <p className="text-zinc-200">Periodo {new Date(p.periodo).toLocaleDateString()}</p>

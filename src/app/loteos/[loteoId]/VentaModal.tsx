@@ -17,7 +17,6 @@ export default function VentaModal({ clientes: _clientes, onSubmit, triggerLabel
   const [seleccionado, setSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [resultados, setResultados] = useState<Cliente[]>([]);
-  const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
