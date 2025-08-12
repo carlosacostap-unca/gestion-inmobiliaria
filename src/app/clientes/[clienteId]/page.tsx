@@ -21,11 +21,16 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const supabase = await createSupabaseServerClient();
   const { clienteId } = await params;
 
-  const [{ data: cliente }, { data: contratos }] = await Promise.all([
+  const [{ data: cliente }, { data: contratos }, { data: alquileres }] = await Promise.all([
     supabase.from("clientes").select("id, nombre_completo, telefono").eq("id", clienteId).single(),
     supabase
       .from("contratos")
       .select("id, lote_id, precio_total, monto_financiado, cuotas_total, estado")
+      .eq("cliente_id", clienteId)
+      .eq("estado", "activo"),
+    supabase
+      .from("contratos_alquiler")
+      .select("id, propiedad_id, precio_mensual, deposito, fecha_inicio, fecha_fin, estado")
       .eq("cliente_id", clienteId)
       .eq("estado", "activo")
   ]);
@@ -55,7 +60,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
       <h1 className="text-xl font-semibold mb-2">{cliente?.nombre_completo}</h1>
       <p className="text-zinc-400 mb-6">Teléfono: {cliente?.telefono}</p>
 
-      <h2 className="text-lg font-semibold mb-2">Contratos activos</h2>
+      <h2 className="text-lg font-semibold mb-2">Contratos de compra</h2>
       <ul className="space-y-2">
         {contratosList.map((ct) => {
           const qs = contratoIdToCuotas.get(ct.id) ?? [];
@@ -76,6 +81,19 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
             </li>
           );
         })}
+      </ul>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">Contratos de alquiler</h2>
+      <ul className="space-y-2">
+        {((alquileres as { id: string; propiedad_id: string; precio_mensual: number; fecha_inicio: string | null; fecha_fin: string | null }[] | null) ?? []).map((a) => (
+          <li key={a.id} className="rounded-md border border-zinc-800 bg-zinc-950 p-4">
+            <p className="text-zinc-200">Contrato #{a.id.slice(0, 8)}…</p>
+            <p className="text-zinc-300">Precio mensual: ${Number(a.precio_mensual).toLocaleString()}</p>
+            <p className="text-zinc-300">Inicio: {a.fecha_inicio ? new Date(a.fecha_inicio).toLocaleDateString() : '-'}</p>
+            {a.fecha_fin ? <p className="text-zinc-300">Fin: {new Date(a.fecha_fin).toLocaleDateString()}</p> : null}
+            <a href={`/propiedades/${a.propiedad_id}`} className="inline-block mt-2 rounded-md border border-zinc-700 px-3 py-1 text-zinc-300 hover:bg-zinc-800/60">Ver propiedad</a>
+          </li>
+        ))}
       </ul>
     </div>
   );
