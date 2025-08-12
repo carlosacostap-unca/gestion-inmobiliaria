@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import AlquilarModal from "./AlquilarModal";
 import { alquilarPropiedad, pagarPrimerPago } from "./actions";
 import CobrarRentaModal from "./CobrarRentaModal";
+import Link from "next/link";
 
 export default async function PropiedadDetallePage({ params }: { params: Promise<{ propiedadId: string }> }) {
   const supabase = await createSupabaseServerClient();
@@ -54,12 +55,19 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
           <p className="text-zinc-300">Precio mensual: ${Number(contrato.precio_mensual).toLocaleString()}</p>
           <p className="text-zinc-300">Inicio: {new Date(contrato.fecha_inicio as unknown as string).toLocaleDateString()}</p>
           {contrato.fecha_fin ? <p className="text-zinc-300">Fin: {new Date(contrato.fecha_fin as unknown as string).toLocaleDateString()}</p> : null}
+          {/* Índice de actualización temporal (solo visual) */}
+          <p className="text-zinc-300">Índice de actualización: 1.00</p>
 
           {Array.isArray(pagos) ? (
             (() => {
               const primeraPendiente = pagos.find((p) => !p.pagado);
               return primeraPendiente ? (
                 <div className="mt-3">
+                  <div className="mb-3 flex gap-2">
+                    <Link href={`/propiedades/${propiedadId}/contrato`} className="rounded-md border border-zinc-700 text-zinc-300 hover:bg-zinc-800/60 px-3 py-1">
+                      Ver contrato
+                    </Link>
+                  </div>
                   <CobrarRentaModal
                     pagoId={primeraPendiente.id}
                     periodo={primeraPendiente.periodo}
