@@ -85,10 +85,7 @@ export default async function LoteoDetallePage({ params }: { params: Promise<{ l
 
             {!l.comprado_por_cliente_id ? (
               <div className="mt-3">
-                <VentaModal
-                  clientes={(clientes as { id: string; nombre_completo: string }[] | null) ?? []}
-                  onSubmit={async (formData) => { "use server"; await venderLote(loteoId, l.id, formData); }}
-                />
+                <VentaModal onSubmit={async (formData) => { "use server"; await venderLote(loteoId, l.id, formData); }} />
               </div>
             ) : (
               <form action={async () => { "use server"; await anularVentaLote(loteoId, l.id); }} className="mt-3">
