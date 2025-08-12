@@ -7,12 +7,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 type Cliente = { id: string; nombre_completo: string; telefono?: string };
 
 type Props = {
-  clientes: Cliente[];
   onSubmit: (formData: FormData) => Promise<void>;
   triggerLabel?: string;
 };
 
-export default function VentaModal({ clientes: _clientes, onSubmit, triggerLabel = "Vender" }: Props) {
+export default function VentaModal({ onSubmit, triggerLabel = "Vender" }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState<Cliente | null>(null);
   const [busqueda, setBusqueda] = useState("");

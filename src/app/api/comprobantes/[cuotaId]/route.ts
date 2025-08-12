@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
+export const runtime = 'nodejs';
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ cuotaId: string }> }) {
   const { cuotaId } = await params;
   const supabase = await createSupabaseServerClient();
