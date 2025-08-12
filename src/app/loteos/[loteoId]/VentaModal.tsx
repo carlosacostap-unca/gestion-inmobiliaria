@@ -25,7 +25,7 @@ export default function VentaModal({ onSubmit, triggerLabel = "Vender" }: Props)
         setResultados([]);
         return;
       }
-      setCargandoBusqueda(true);
+      // inicio de búsqueda
       try {
         const supabase = createSupabaseBrowserClient();
         const { data, error } = await supabase
@@ -42,7 +42,7 @@ export default function VentaModal({ onSubmit, triggerLabel = "Vender" }: Props)
           }
         }
       } finally {
-        if (!cancelado) setCargandoBusqueda(false);
+        // fin de búsqueda
       }
     };
     const t = setTimeout(buscar, 300);
