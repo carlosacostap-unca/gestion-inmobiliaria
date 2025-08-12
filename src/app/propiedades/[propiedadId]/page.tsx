@@ -78,7 +78,7 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
                   <p className="text-zinc-200">Periodo {new Date(p.periodo).toLocaleDateString()}</p>
                   <p className="text-zinc-400 text-sm">Monto: ${Number(p.monto).toLocaleString()}</p>
                 </div>
-                <span className="text-sm {p.pagado ? 'text-emerald-400' : 'text-zinc-400'}`}>{p.pagado ? 'Pagado' : 'Pendiente'}</span>
+                <span className={`text-sm ${p.pagado ? 'text-emerald-400' : 'text-zinc-400'}`}>{p.pagado ? 'Pagado' : 'Pendiente'}</span>
               </li>
             ))}
           </ul>
