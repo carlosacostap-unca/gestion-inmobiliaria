@@ -33,7 +33,7 @@ export default async function PropiedadesPage() {
             <div>
               <a href={`/propiedades/${p.id}`} className="text-lg font-medium text-zinc-100 hover:underline underline-offset-2">{p.nombre}</a>
               <p className="text-base text-zinc-400">{p.direccion}</p>
-              <p className="text-sm {p.alquiler_activo ? 'text-emerald-400' : 'text-zinc-400'}`}>{p.alquiler_activo ? 'Alquilada' : 'Disponible'}</p>
+              <p className={`text-sm ${p.alquiler_activo ? 'text-emerald-400' : 'text-zinc-400'}`}>{p.alquiler_activo ? 'Alquilada' : 'Disponible'}</p>
             </div>
             <form action={async () => { "use server"; await eliminarPropiedad(p.id); }}>
               <button type="submit" className="rounded-md border border-red-800 text-red-300 hover:bg-red-900/40 px-3 py-1">Eliminar</button>
