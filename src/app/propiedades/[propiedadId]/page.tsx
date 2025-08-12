@@ -26,13 +26,16 @@ export default async function PropiedadDetallePage({ params }: { params: Promise
     cliente = resp.data as { id: string; nombre_completo: string; telefono: string } | null;
   }
 
-  const pagos: { id: string; periodo: string; monto: number; pagado: boolean; pagado_en: string | null }[] = contrato
-    ? ((await supabase
-        .from("contratos_alquiler_pagos")
-        .select("id, periodo, monto, pagado, pagado_en")
-        .eq("contrato_id", contrato.id)
-        .order("periodo", { ascending: true })).data as any[]) ?? []
-    : [];
+  type Pago = { id: string; periodo: string; monto: number; pagado: boolean; pagado_en: string | null };
+  let pagos: Pago[] = [];
+  if (contrato) {
+    const resp = await supabase
+      .from("contratos_alquiler_pagos")
+      .select("id, periodo, monto, pagado, pagado_en")
+      .eq("contrato_id", contrato.id)
+      .order("periodo", { ascending: true });
+    pagos = (resp.data as Pago[] | null) ?? [];
+  }
 
   return (
     <div className="mx-auto max-w-4xl p-6">
